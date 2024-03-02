@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:frufav/model/fruits_info.dart';
 import 'package:frufav/riverpod/fruits_info_provider.dart';
+import 'package:frufav/screen/fruits_detail_screen.dart';
 
 class FruitsListScreen extends ConsumerWidget {
   const FruitsListScreen({super.key});
@@ -18,11 +20,8 @@ class FruitsListScreen extends ConsumerWidget {
           padding: const EdgeInsets.all(5),
           itemBuilder: (_, index) {
             return _FruitsListItem(
-              thumbnailUrl: ref
-                  .watch(fruitsListProvider)
-                  .fruitsInfoList
-                  .elementAt(index)
-                  .thumbnailUrl!,
+              fruitsInfo:
+                  ref.watch(fruitsListProvider).fruitsInfoList.elementAt(index),
             );
           },
         ),
@@ -32,15 +31,23 @@ class FruitsListScreen extends ConsumerWidget {
 }
 
 class _FruitsListItem extends StatelessWidget {
-  const _FruitsListItem({required this.thumbnailUrl});
+  const _FruitsListItem({required this.fruitsInfo});
 
-  final String thumbnailUrl;
+  final FruitsInfo fruitsInfo;
 
   @override
   Widget build(BuildContext context) {
     return Card(
       child: GestureDetector(
-        onTap: () {},
+        onTap: () {
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (context) {
+                return FruitsDetailScreen(fruitsInfo: fruitsInfo);
+              },
+            ),
+          );
+        },
         child: Container(
           decoration: BoxDecoration(
             border: Border.all(color: Colors.grey, width: 1),
@@ -52,7 +59,7 @@ class _FruitsListItem extends StatelessWidget {
               borderRadius: const BorderRadius.all(Radius.circular(5)),
               image: DecorationImage(
                 fit: BoxFit.cover,
-                image: Image.asset(thumbnailUrl).image,
+                image: Image.asset(fruitsInfo.thumbnailUrl!).image,
               ),
             ),
           ),
