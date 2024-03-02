@@ -1,6 +1,6 @@
 # frufav
 
-A new Flutter project.
+frufav is the fruits book app made by flutter.  
 
 ## Getting Started
 
@@ -14,3 +14,12 @@ A few resources to get you started if this is your first Flutter project:
 For help getting started with Flutter development, view the
 [online documentation](https://docs.flutter.dev/), which offers tutorials,
 samples, guidance on mobile development, and a full API reference.
+  
+## Project status
+
+- [x] Display the list of fruits.  
+- [x] Long press to add the fruits to your favorites.  
+- [x] Sort the list of fruits.  
+  
+## License
+frufav is under MIT [LICENSE](LICENSE).  
