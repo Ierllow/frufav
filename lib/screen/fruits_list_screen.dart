@@ -9,6 +9,12 @@ class FruitsListScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    ref.listen(
+      fruitsListProvider,
+      (previous, next) {
+        addFavoriteFruitsListener(context, previous, next);
+      },
+    );
     return Scaffold(
       appBar: AppBar(
         title: const Text('フルーツ'),
@@ -21,7 +27,7 @@ class FruitsListScreen extends ConsumerWidget {
           itemBuilder: (_, index) {
             return _FruitsListItem(
               fruitsInfo:
-                  ref.watch(fruitsListProvider).fruitsInfoList.elementAt(index),
+                  ref.read(fruitsListProvider).fruitsInfoList.elementAt(index),
             );
           },
         ),
@@ -30,13 +36,13 @@ class FruitsListScreen extends ConsumerWidget {
   }
 }
 
-class _FruitsListItem extends StatelessWidget {
+class _FruitsListItem extends ConsumerWidget {
   const _FruitsListItem({required this.fruitsInfo});
 
   final FruitsInfo fruitsInfo;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Card(
       child: GestureDetector(
         onTap: () {
@@ -48,9 +54,27 @@ class _FruitsListItem extends StatelessWidget {
             ),
           );
         },
+        onLongPressStart: (_) {
+          if (ref
+              .read(fruitsListProvider)
+              .favoriteFruitsInfoList
+              .any((f) => f.fruitsName == fruitsInfo.fruitsName)) {
+            return;
+          }
+          ref
+              .read(fruitsListProvider.notifier)
+              .addFavoriteFruitsInfo(fruitsInfo);
+        },
         child: Container(
           decoration: BoxDecoration(
-            border: Border.all(color: Colors.grey, width: 1),
+            border: Border.all(
+              color: ref.watch(fruitsListProvider).favoriteFruitsInfoList.any(
+                        (f) => identical(f.fruitsName, fruitsInfo.fruitsName),
+                      )
+                  ? Colors.red
+                  : Colors.grey,
+              width: 1,
+            ),
             borderRadius: BorderRadius.circular(5),
           ),
           child: Container(
