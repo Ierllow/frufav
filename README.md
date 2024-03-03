@@ -1,6 +1,6 @@
 # frufav
 
-frufav is Fruit book app made by flutter.  
+frufav is the fruits book app made by flutter.  
 
 ## Getting Started
 
