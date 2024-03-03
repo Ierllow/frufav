@@ -1,7 +1,6 @@
 import 'dart:convert';
 
 import 'package:equatable/equatable.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:frufav/model/fruits_info.dart';
@@ -19,6 +18,9 @@ class FruitsListState extends Equatable {
 
   final List<FruitsInfo> fruitsInfoList;
   final List<FruitsInfo> favoriteFruitsInfoList;
+
+  bool checkFavoriteFruitsInfo(FruitsInfo fruitsInfo) =>
+      favoriteFruitsInfoList.any((f) => f.fruitsName == fruitsInfo.fruitsName);
 
   FruitsListState copyWith({
     List<FruitsInfo>? fruitsInfoList,
@@ -54,28 +56,13 @@ class FruitsListNotifier extends StateNotifier<FruitsListState> {
       favoriteFruitsInfoList: [...state.favoriteFruitsInfoList, fruitsInfo],
     );
   }
+
+  Future<void> removeFavoriteFruitsInfo(FruitsInfo fruitsInfo) async {
+    final removedInfo = state.favoriteFruitsInfoList..remove(fruitsInfo);
+    state = state.copyWith(favoriteFruitsInfoList: [...removedInfo]);
+  }
 }
 
 final fruitsListProvider =
     StateNotifierProvider<FruitsListNotifier, FruitsListState>(
         (_) => FruitsListNotifier());
-
-void addFavoriteFruitsListener(
-  BuildContext context,
-  FruitsListState? previous,
-  FruitsListState next,
-) {
-  if (next.favoriteFruitsInfoList.isEmpty) return;
-  final snackBar = SnackBar(
-    content: Container(
-      alignment: AlignmentDirectional.center,
-      child:
-          Text('${next.favoriteFruitsInfoList.last.fruitsName}をお気に入りに登録しました。'),
-    ),
-    duration: const Duration(seconds: 3),
-    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-    margin: const EdgeInsets.only(left: 23, right: 23, bottom: 23),
-    behavior: SnackBarBehavior.floating,
-  );
-  ScaffoldMessenger.of(context).showSnackBar(snackBar);
-}

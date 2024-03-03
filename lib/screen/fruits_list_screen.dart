@@ -9,12 +9,6 @@ class FruitsListScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    ref.listen(
-      fruitsListProvider,
-      (previous, next) {
-        addFavoriteFruitsListener(context, previous, next);
-      },
-    );
     return Scaffold(
       appBar: AppBar(
         title: const Text('フルーツ'),
@@ -27,7 +21,7 @@ class FruitsListScreen extends ConsumerWidget {
           itemBuilder: (_, index) {
             return _FruitsListItem(
               fruitsInfo:
-                  ref.read(fruitsListProvider).fruitsInfoList.elementAt(index),
+                  ref.watch(fruitsListProvider).fruitsInfoList.elementAt(index),
             );
           },
         ),
@@ -55,15 +49,19 @@ class _FruitsListItem extends ConsumerWidget {
           );
         },
         onLongPressStart: (_) {
-          if (ref
+          if (!ref
               .read(fruitsListProvider)
-              .favoriteFruitsInfoList
-              .any((f) => f.fruitsName == fruitsInfo.fruitsName)) {
+              .checkFavoriteFruitsInfo(fruitsInfo)) {
+            ref
+                .read(fruitsListProvider.notifier)
+                .addFavoriteFruitsInfo(fruitsInfo);
+            _showSnackBar(context, true);
             return;
           }
           ref
               .read(fruitsListProvider.notifier)
-              .addFavoriteFruitsInfo(fruitsInfo);
+              .removeFavoriteFruitsInfo(fruitsInfo);
+          _showSnackBar(context, false);
         },
         child: Container(
           decoration: BoxDecoration(
@@ -90,5 +88,20 @@ class _FruitsListItem extends ConsumerWidget {
         ),
       ),
     );
+  }
+
+  void _showSnackBar(BuildContext context, bool favorite) {
+    final suffixText = favorite ? 'をお気に入りに登録しました。' : 'をお気に入りから外しました。';
+    final snackBar = SnackBar(
+      content: Container(
+        alignment: AlignmentDirectional.center,
+        child: Text('${fruitsInfo.fruitsName}$suffixText'),
+      ),
+      duration: const Duration(seconds: 3),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      margin: const EdgeInsets.only(left: 23, right: 23, bottom: 23),
+      behavior: SnackBarBehavior.floating,
+    );
+    ScaffoldMessenger.of(context).showSnackBar(snackBar);
   }
 }
