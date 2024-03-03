@@ -62,7 +62,3 @@ class FruitsListNotifier extends StateNotifier<FruitsListState> {
     state = state.copyWith(favoriteFruitsInfoList: [...removedInfo]);
   }
 }
-
-final fruitsListProvider =
-    StateNotifierProvider<FruitsListNotifier, FruitsListState>(
-        (_) => FruitsListNotifier());

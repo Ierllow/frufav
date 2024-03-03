@@ -4,6 +4,10 @@ import 'package:frufav/model/fruits_info.dart';
 import 'package:frufav/riverpod/fruits_info_provider.dart';
 import 'package:frufav/screen/fruits_detail_screen.dart';
 
+final _fruitsListProvider =
+    StateNotifierProvider<FruitsListNotifier, FruitsListState>(
+        (_) => FruitsListNotifier());
+
 class FruitsListScreen extends ConsumerWidget {
   const FruitsListScreen({super.key});
 
@@ -16,27 +20,74 @@ class FruitsListScreen extends ConsumerWidget {
       ),
       body: Center(
         child: ListView.builder(
-          itemCount: ref.watch(fruitsListProvider).fruitsInfoList.length,
+          itemCount: ref.watch(_fruitsListProvider).fruitsInfoList.length,
           padding: const EdgeInsets.all(5),
           itemBuilder: (_, index) {
+            final fruitsListState = ref.watch(_fruitsListProvider);
+            final fruitsInfo = fruitsListState.fruitsInfoList.elementAt(index);
             return _FruitsListItem(
-              fruitsInfo:
-                  ref.watch(fruitsListProvider).fruitsInfoList.elementAt(index),
+              fruitsInfo: fruitsInfo,
+              favorite: fruitsListState.favoriteFruitsInfoList
+                  .any((f) => identical(f.fruitsName, fruitsInfo.fruitsName)),
+              onLongPressStart: () => _longPressStart(context, ref, fruitsInfo),
             );
           },
         ),
       ),
     );
   }
+
+  void _longPressStart(
+    BuildContext context,
+    WidgetRef ref,
+    FruitsInfo fruitsInfo,
+  ) {
+    if (!ref.read(_fruitsListProvider).checkFavoriteFruitsInfo(fruitsInfo)) {
+      ref.read(_fruitsListProvider.notifier).addFavoriteFruitsInfo(fruitsInfo);
+      _showSnackBar(
+        context,
+        '${fruitsInfo.fruitsName!}をお気に入りに登録しました。',
+      );
+      return;
+    }
+    ref.read(_fruitsListProvider.notifier).removeFavoriteFruitsInfo(fruitsInfo);
+    _showSnackBar(
+      context,
+      '${fruitsInfo.fruitsName!}をお気に入りから外しました。',
+    );
+  }
+
+  void _showSnackBar(
+    BuildContext context,
+    String contextText,
+  ) {
+    final snackBar = SnackBar(
+      content: Container(
+        alignment: AlignmentDirectional.center,
+        child: Text(contextText),
+      ),
+      duration: const Duration(seconds: 3),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      margin: const EdgeInsets.only(left: 23, right: 23, bottom: 23),
+      behavior: SnackBarBehavior.floating,
+    );
+    ScaffoldMessenger.of(context).showSnackBar(snackBar);
+  }
 }
 
-class _FruitsListItem extends ConsumerWidget {
-  const _FruitsListItem({required this.fruitsInfo});
+class _FruitsListItem extends StatelessWidget {
+  const _FruitsListItem({
+    required this.fruitsInfo,
+    required this.favorite,
+    required this.onLongPressStart,
+  });
 
   final FruitsInfo fruitsInfo;
+  final bool favorite;
+  final VoidCallback onLongPressStart;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     return Card(
       child: GestureDetector(
         onTap: () {
@@ -48,29 +99,11 @@ class _FruitsListItem extends ConsumerWidget {
             ),
           );
         },
-        onLongPressStart: (_) {
-          if (!ref
-              .read(fruitsListProvider)
-              .checkFavoriteFruitsInfo(fruitsInfo)) {
-            ref
-                .read(fruitsListProvider.notifier)
-                .addFavoriteFruitsInfo(fruitsInfo);
-            _showSnackBar(context, true);
-            return;
-          }
-          ref
-              .read(fruitsListProvider.notifier)
-              .removeFavoriteFruitsInfo(fruitsInfo);
-          _showSnackBar(context, false);
-        },
+        onLongPressStart: (_) => onLongPressStart.call(),
         child: Container(
           decoration: BoxDecoration(
             border: Border.all(
-              color: ref.watch(fruitsListProvider).favoriteFruitsInfoList.any(
-                        (f) => identical(f.fruitsName, fruitsInfo.fruitsName),
-                      )
-                  ? Colors.red
-                  : Colors.grey,
+              color: favorite ? Colors.red : Colors.grey,
               width: 1,
             ),
             borderRadius: BorderRadius.circular(5),
@@ -88,20 +121,5 @@ class _FruitsListItem extends ConsumerWidget {
         ),
       ),
     );
-  }
-
-  void _showSnackBar(BuildContext context, bool favorite) {
-    final suffixText = favorite ? 'をお気に入りに登録しました。' : 'をお気に入りから外しました。';
-    final snackBar = SnackBar(
-      content: Container(
-        alignment: AlignmentDirectional.center,
-        child: Text('${fruitsInfo.fruitsName}$suffixText'),
-      ),
-      duration: const Duration(seconds: 3),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      margin: const EdgeInsets.only(left: 23, right: 23, bottom: 23),
-      behavior: SnackBarBehavior.floating,
-    );
-    ScaffoldMessenger.of(context).showSnackBar(snackBar);
   }
 }
