@@ -4,6 +4,7 @@ import 'package:equatable/equatable.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:frufav/model/fruits_info.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class FruitsListState extends Equatable {
   const FruitsListState({
@@ -46,8 +47,16 @@ class FruitsListNotifier extends StateNotifier<FruitsListState> {
     final jsonResponse = json.decode(body) as Map<String, dynamic>;
     final fruitsRaw = jsonResponse['fruitsInfoList'] as List? ?? <dynamic>[];
     if (fruitsRaw.isEmpty) return;
+    final fruitsInfoList =
+        fruitsRaw.map((f) => FruitsInfo.fromJson(f)).toList();
+    final prefs = await SharedPreferences.getInstance();
+    var favFruitsInfoList = prefs.getStringList("favFruitsInfoList");
+    final favoriteFruitsInfoList = favFruitsInfoList
+        ?.map((n) => fruitsInfoList.firstWhere((ff) => ff.fruitsName == n))
+        .toList();
     state = state.copyWith(
-      fruitsInfoList: fruitsRaw.map((f) => FruitsInfo.fromJson(f)).toList(),
+      fruitsInfoList: fruitsInfoList,
+      favoriteFruitsInfoList: favoriteFruitsInfoList,
     );
   }
 
@@ -55,10 +64,19 @@ class FruitsListNotifier extends StateNotifier<FruitsListState> {
     state = state.copyWith(
       favoriteFruitsInfoList: [...state.favoriteFruitsInfoList, fruitsInfo],
     );
+    saveFavoriteFruitsInfoList();
   }
 
   Future<void> removeFavoriteFruitsInfo(FruitsInfo fruitsInfo) async {
     final removedInfo = state.favoriteFruitsInfoList..remove(fruitsInfo);
     state = state.copyWith(favoriteFruitsInfoList: [...removedInfo]);
+  }
+
+  Future<void> saveFavoriteFruitsInfoList() async {
+    final prefs = await SharedPreferences.getInstance();
+    prefs.setStringList(
+      "favFruitsInfoList",
+      state.favoriteFruitsInfoList.map((f) => f.fruitsName!).toList(),
+    );
   }
 }
