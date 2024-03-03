@@ -21,20 +21,20 @@ class FruitsDetailScreen extends StatelessWidget {
           Image.asset(fruitsInfo.thumbnailUrl!),
           _FruitsDetailListItem(
             title: "${fruitsInfo.fruitsName!}の概要",
-            subtitle: fruitsInfo.overview!,
+            detail: fruitsInfo.overview!,
           ),
           _FruitsDetailListItem(
             title: "${fruitsInfo.fruitsName!}の歴史",
-            subtitle: fruitsInfo.history!,
+            detail: fruitsInfo.history!,
           ),
           _FruitsDetailListItem(
             title: "${fruitsInfo.fruitsName!}の選び方",
-            subtitle: fruitsInfo.select!,
+            detail: fruitsInfo.select!,
             imageUrl: fruitsInfo.selectImageUrl,
           ),
           _FruitsDetailListItem(
             title: "${fruitsInfo.fruitsName!}の保存方法",
-            subtitle: fruitsInfo.save!,
+            detail: fruitsInfo.save!,
             imageUrl: fruitsInfo.saveImageUrl,
           ),
         ],
@@ -46,12 +46,12 @@ class FruitsDetailScreen extends StatelessWidget {
 class _FruitsDetailListItem extends StatelessWidget {
   const _FruitsDetailListItem({
     required this.title,
-    required this.subtitle,
+    required this.detail,
     this.imageUrl,
   });
 
   final String title;
-  final String subtitle;
+  final String detail;
   final String? imageUrl;
 
   @override
@@ -77,7 +77,7 @@ class _FruitsDetailListItem extends StatelessWidget {
                 ),
               Container(
                 alignment: Alignment.centerLeft,
-                child: Text(subtitle),
+                child: Text(detail),
               ),
             ],
           ),

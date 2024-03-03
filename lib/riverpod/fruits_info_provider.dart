@@ -70,6 +70,7 @@ class FruitsListNotifier extends StateNotifier<FruitsListState> {
   Future<void> removeFavoriteFruitsInfo(FruitsInfo fruitsInfo) async {
     final removedInfo = state.favoriteFruitsInfoList..remove(fruitsInfo);
     state = state.copyWith(favoriteFruitsInfoList: [...removedInfo]);
+    saveFavoriteFruitsInfoList();
   }
 
   Future<void> saveFavoriteFruitsInfoList() async {
