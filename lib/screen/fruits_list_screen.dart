@@ -1,38 +1,44 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:frufav/model/fruits_info.dart';
-import 'package:frufav/riverpod/fruits_info_provider.dart';
+import 'package:frufav/riverpod/fruits_list_notifier.dart';
 import 'package:frufav/screen/fruits_detail_screen.dart';
 
 final _fruitsListProvider =
     StateNotifierProvider<FruitsListNotifier, FruitsListState>(
         (_) => FruitsListNotifier());
 
-class FruitsListScreen extends ConsumerWidget {
+class FruitsListScreen extends StatelessWidget {
   const FruitsListScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('フルーツ'),
         centerTitle: true,
       ),
-      body: Center(
-        child: ListView.builder(
-          itemCount: ref.watch(_fruitsListProvider).fruitsInfoList.length,
-          padding: const EdgeInsets.all(5),
-          itemBuilder: (_, index) {
-            final fruitsListState = ref.watch(_fruitsListProvider);
-            final fruitsInfo = fruitsListState.fruitsInfoList.elementAt(index);
-            return _FruitsListItem(
-              fruitsInfo: fruitsInfo,
-              favorite: fruitsListState.favoriteFruitsInfoList
-                  .any((f) => identical(f.fruitsName, fruitsInfo.fruitsName)),
-              onLongPressStart: () => _longPressStart(context, ref, fruitsInfo),
-            );
-          },
-        ),
+      body: Consumer(
+        builder: (context, ref, _) {
+          return Center(
+            child: ListView.builder(
+              itemCount: ref.watch(_fruitsListProvider).fruitsInfoList.length,
+              padding: const EdgeInsets.all(5),
+              itemBuilder: (_, index) {
+                final fruitsListState = ref.watch(_fruitsListProvider);
+                final fruitsInfo =
+                    fruitsListState.fruitsInfoList.elementAt(index);
+                return _FruitsListItem(
+                  fruitsInfo: fruitsInfo,
+                  favorite: fruitsListState.favoriteFruitsInfoList.any(
+                      (f) => identical(f.fruitsName, fruitsInfo.fruitsName)),
+                  onLongPressStart: () =>
+                      _longPressStart(context, ref, fruitsInfo),
+                );
+              },
+            ),
+          );
+        },
       ),
     );
   }

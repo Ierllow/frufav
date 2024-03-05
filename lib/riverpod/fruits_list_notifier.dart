@@ -51,12 +51,11 @@ class FruitsListNotifier extends StateNotifier<FruitsListState> {
         fruitsRaw.map((f) => FruitsInfo.fromJson(f)).toList();
     final prefs = await SharedPreferences.getInstance();
     var favFruitsInfoList = prefs.getStringList("favFruitsInfoList");
-    final favoriteFruitsInfoList = favFruitsInfoList
-        ?.map((n) => fruitsInfoList.firstWhere((ff) => ff.fruitsName == n))
-        .toList();
     state = state.copyWith(
       fruitsInfoList: fruitsInfoList,
-      favoriteFruitsInfoList: favoriteFruitsInfoList,
+      favoriteFruitsInfoList: favFruitsInfoList
+          ?.map((n) => fruitsInfoList.firstWhere((ff) => ff.fruitsName == n))
+          .toList(),
     );
   }
 
