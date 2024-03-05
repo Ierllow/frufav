@@ -19,7 +19,7 @@ samples, guidance on mobile development, and a full API reference.
 
 - [x] Display the list of fruits.  
 - [x] Long press to add the fruits to your favorites.  
-- [ ] Sort the list of fruits.  
+- [x] Sort the list of fruits.  
   
 ## License
 frufav is under MIT [LICENSE](LICENSE).  

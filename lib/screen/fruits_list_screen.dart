@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:frufav/drop_down_button_type.dart';
 import 'package:frufav/model/fruits_info.dart';
 import 'package:frufav/riverpod/fruits_list_notifier.dart';
 import 'package:frufav/screen/fruits_detail_screen.dart';
@@ -13,21 +14,35 @@ class FruitsListScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('フルーツ'),
-        centerTitle: true,
-      ),
-      body: Consumer(
-        builder: (context, ref, _) {
-          return Center(
+    return Consumer(
+      builder: (context, ref, _) {
+        final fruitsListState = ref.watch(_fruitsListProvider);
+        final fruitsListProvider = ref.read(_fruitsListProvider.notifier);
+        final fruitsInfoList = identical(
+                fruitsListState.lastSortedInfoListType, DropDownButtonType.all)
+            ? fruitsListState.fruitsInfoList
+            : fruitsListState.favoriteFruitsInfoList;
+        return Scaffold(
+          appBar: AppBar(
+            title: const Text('フルーツ'),
+            centerTitle: true,
+            actions: [
+              _FruitsListSortButtonWidget(
+                selectedItemType: fruitsListState.lastSortedInfoListType,
+                onSelectedItem: (type) {
+                  fruitsListProvider.updateLastSortedInfoList(DropDownButtonType
+                      .values
+                      .firstWhere((d) => identical(d, type)));
+                },
+              ),
+            ],
+          ),
+          body: Center(
             child: ListView.builder(
-              itemCount: ref.watch(_fruitsListProvider).fruitsInfoList.length,
+              itemCount: fruitsInfoList.length,
               padding: const EdgeInsets.all(5),
               itemBuilder: (_, index) {
-                final fruitsListState = ref.watch(_fruitsListProvider);
-                final fruitsInfo =
-                    fruitsListState.fruitsInfoList.elementAt(index);
+                final fruitsInfo = fruitsInfoList.elementAt(index);
                 return _FruitsListItem(
                   fruitsInfo: fruitsInfo,
                   favorite: fruitsListState.favoriteFruitsInfoList.any(
@@ -37,9 +52,9 @@ class FruitsListScreen extends StatelessWidget {
                 );
               },
             ),
-          );
-        },
-      ),
+          ),
+        );
+      },
     );
   }
 
@@ -48,15 +63,16 @@ class FruitsListScreen extends StatelessWidget {
     WidgetRef ref,
     FruitsInfo fruitsInfo,
   ) {
+    final fruitsListNotifier = ref.read(_fruitsListProvider.notifier);
     if (!ref.read(_fruitsListProvider).checkFavoriteFruitsInfo(fruitsInfo)) {
-      ref.read(_fruitsListProvider.notifier).addFavoriteFruitsInfo(fruitsInfo);
+      fruitsListNotifier.addFavoriteFruitsInfo(fruitsInfo);
       _showSnackBar(
         context,
         '${fruitsInfo.fruitsName!}をお気に入りに登録しました。',
       );
       return;
     }
-    ref.read(_fruitsListProvider.notifier).removeFavoriteFruitsInfo(fruitsInfo);
+    fruitsListNotifier.removeFavoriteFruitsInfo(fruitsInfo);
     _showSnackBar(
       context,
       '${fruitsInfo.fruitsName!}をお気に入りから外しました。',
@@ -78,6 +94,42 @@ class FruitsListScreen extends StatelessWidget {
       behavior: SnackBarBehavior.floating,
     );
     ScaffoldMessenger.of(context).showSnackBar(snackBar);
+  }
+}
+
+class _FruitsListSortButtonWidget extends StatelessWidget {
+  const _FruitsListSortButtonWidget({
+    required this.selectedItemType,
+    required this.onSelectedItem,
+  });
+
+  final DropDownButtonType selectedItemType;
+  final void Function(DropDownButtonType) onSelectedItem;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        border: Border.all(
+          color: Colors.grey,
+        ),
+      ),
+      child: DropdownButton(
+        underline: Container(),
+        value: selectedItemType,
+        items: DropDownButtonType.values
+            .map(
+              (item) => DropdownMenuItem(
+                value: item,
+                child: Text(item.text),
+              ),
+            )
+            .toList(),
+        onChanged: (value) {
+          onSelectedItem.call(value!);
+        },
+      ),
+    );
   }
 }
 
