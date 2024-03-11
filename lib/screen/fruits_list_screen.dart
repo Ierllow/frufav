@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:frufav/drop_down_button_type.dart';
 import 'package:frufav/model/fruits_info.dart';
 import 'package:frufav/riverpod/fruits_list_notifier.dart';
+import 'package:frufav/riverpod/snack_bar_notifier.dart';
 import 'package:frufav/screen/fruits_detail_screen.dart';
 
 final _fruitsListProvider =
@@ -47,8 +48,7 @@ class FruitsListScreen extends StatelessWidget {
                   fruitsInfo: fruitsInfo,
                   favorite: fruitsListState.favoriteFruitsInfoList.any(
                       (f) => identical(f.fruitsName, fruitsInfo.fruitsName)),
-                  onLongPressStart: () =>
-                      _longPressStart(context, ref, fruitsInfo),
+                  onLongPressStart: () => _longPressStart(ref, fruitsInfo),
                 );
               },
             ),
@@ -59,41 +59,44 @@ class FruitsListScreen extends StatelessWidget {
   }
 
   void _longPressStart(
-    BuildContext context,
     WidgetRef ref,
     FruitsInfo fruitsInfo,
   ) {
     final fruitsListNotifier = ref.read(_fruitsListProvider.notifier);
+    final snackBarNotifier = ref.read(snackBarNotifierProvider.notifier);
     if (!ref.read(_fruitsListProvider).checkFavoriteFruitsInfo(fruitsInfo)) {
       fruitsListNotifier.addFavoriteFruitsInfo(fruitsInfo);
-      _showSnackBar(
-        context,
-        '${fruitsInfo.fruitsName!}をお気に入りに登録しました。',
+      snackBarNotifier.add(
+        _createSnackBar(
+          fruitsName: fruitsInfo.fruitsName!,
+          suffixContextText: 'をお気に入りに登録しました。',
+        ),
       );
       return;
     }
     fruitsListNotifier.removeFavoriteFruitsInfo(fruitsInfo);
-    _showSnackBar(
-      context,
-      '${fruitsInfo.fruitsName!}をお気に入りから外しました。',
+    snackBarNotifier.add(
+      _createSnackBar(
+        fruitsName: fruitsInfo.fruitsName!,
+        suffixContextText: 'をお気に入りから外しました。',
+      ),
     );
   }
 
-  void _showSnackBar(
-    BuildContext context,
-    String contextText,
-  ) {
-    final snackBar = SnackBar(
+  SnackBar _createSnackBar({
+    required String fruitsName,
+    required String suffixContextText,
+  }) {
+    return SnackBar(
       content: Container(
         alignment: AlignmentDirectional.center,
-        child: Text(contextText),
+        child: Text('$fruitsName$suffixContextText'),
       ),
       duration: const Duration(seconds: 3),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       margin: const EdgeInsets.only(left: 23, right: 23, bottom: 23),
       behavior: SnackBarBehavior.floating,
     );
-    ScaffoldMessenger.of(context).showSnackBar(snackBar);
   }
 }
 
