@@ -17,6 +17,7 @@ class FruitsListScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Consumer(
       builder: (context, ref, _) {
+        snackBarListener(context, ref);
         final fruitsListState = ref.watch(_fruitsListProvider);
         final fruitsListProvider = ref.read(_fruitsListProvider.notifier);
         final fruitsInfoList = identical(

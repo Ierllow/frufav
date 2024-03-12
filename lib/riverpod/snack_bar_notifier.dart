@@ -8,39 +8,44 @@ final snackBarNotifierProvider =
 
 class SnackBarState extends Equatable {
   const SnackBarState({
-    required SnackBar? snackBar,
-  }) : _snackBar = snackBar;
+    required List<SnackBar> snackBarList,
+  }) : _snackBarList = snackBarList;
 
-  factory SnackBarState.init() => const SnackBarState(snackBar: null);
+  factory SnackBarState.init() => const SnackBarState(snackBarList: []);
 
-  final SnackBar? _snackBar;
+  final List<SnackBar>? _snackBarList;
 
-  SnackBar? get snackBar => _snackBar;
+  SnackBar? get snackBar => _snackBarList?.lastOrNull;
 
   @override
-  List<Object?> get props => [_snackBar];
+  List<Object?> get props => [_snackBarList];
 
   SnackBarState copyWith({
-    SnackBar? snackBar,
+    List<SnackBar>? snackBarList,
   }) =>
-      SnackBarState(snackBar: snackBar ?? _snackBar);
+      SnackBarState(snackBarList: snackBarList ?? _snackBarList!);
 }
 
 class SnackBarNotifier extends StateNotifier<SnackBarState> {
   SnackBarNotifier() : super(SnackBarState.init());
 
   Future<void> add(SnackBar snackBar) async {
-    state = state.copyWith(snackBar: snackBar);
+    state = state.copyWith(snackBarList: [...state._snackBarList!, snackBar]);
+    remove(snackBar);
+  }
+
+  Future<void> remove(SnackBar snackBar) async {
+    state = state.copyWith(
+        snackBarList: state._snackBarList!..removeWhere((s) => s == snackBar));
   }
 }
 
-void getSnackBarProvider(BuildContext context) => Provider(
-      (ref) => ref.listen(
-        snackBarNotifierProvider,
-        (previous, next) {
-          if (next.snackBar != null) {
-            ScaffoldMessenger.of(context).showSnackBar(next.snackBar!);
-          }
-        },
-      ),
+void snackBarListener(BuildContext context, WidgetRef ref) => ref.listen(
+      snackBarNotifierProvider,
+      (previous, next) {
+        if (previous == next) return;
+        if (next.snackBar != null) {
+          ScaffoldMessenger.of(context).showSnackBar(next.snackBar!);
+        }
+      },
     );
