@@ -2,12 +2,14 @@ import 'dart:convert';
 
 import 'package:collection/collection.dart';
 import 'package:equatable/equatable.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:frufav/drop_down_button_type.dart';
 import 'package:frufav/model/fruits_info.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+@immutable
 class FruitsListState extends Equatable {
   const FruitsListState({
     required this.fruitsInfoList,

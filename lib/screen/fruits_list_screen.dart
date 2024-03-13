@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:frufav/bloc/snack_bar_bloc.dart';
 import 'package:frufav/drop_down_button_type.dart';
 import 'package:frufav/model/fruits_info.dart';
 import 'package:frufav/riverpod/fruits_list_notifier.dart';
-import 'package:frufav/riverpod/snack_bar_notifier.dart';
 import 'package:frufav/screen/fruits_detail_screen.dart';
 
 final _fruitsListProvider =
@@ -17,7 +18,6 @@ class FruitsListScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Consumer(
       builder: (context, ref, _) {
-        snackBarListener(context, ref);
         final fruitsListState = ref.watch(_fruitsListProvider);
         final fruitsListProvider = ref.read(_fruitsListProvider.notifier);
         final fruitsInfoList = identical(
@@ -49,7 +49,8 @@ class FruitsListScreen extends StatelessWidget {
                   fruitsInfo: fruitsInfo,
                   favorite: fruitsListState.favoriteFruitsInfoList.any(
                       (f) => identical(f.fruitsName, fruitsInfo.fruitsName)),
-                  onLongPressStart: () => _longPressStart(ref, fruitsInfo),
+                  onLongPressStart: () =>
+                      _longPressStart(context, ref, fruitsInfo),
                 );
               },
             ),
@@ -60,14 +61,15 @@ class FruitsListScreen extends StatelessWidget {
   }
 
   void _longPressStart(
+    BuildContext context,
     WidgetRef ref,
     FruitsInfo fruitsInfo,
   ) {
     final fruitsListNotifier = ref.read(_fruitsListProvider.notifier);
-    final snackBarNotifier = ref.read(snackBarNotifierProvider.notifier);
+    final snackBarBloc = context.read<SnackBarBloc>();
     if (!ref.read(_fruitsListProvider).checkFavoriteFruitsInfo(fruitsInfo)) {
       fruitsListNotifier.addFavoriteFruitsInfo(fruitsInfo);
-      snackBarNotifier.add(
+      snackBarBloc.addSnackBar(
         _createSnackBar(
           fruitsName: fruitsInfo.fruitsName!,
           suffixContextText: 'をお気に入りに登録しました。',
@@ -76,7 +78,7 @@ class FruitsListScreen extends StatelessWidget {
       return;
     }
     fruitsListNotifier.removeFavoriteFruitsInfo(fruitsInfo);
-    snackBarNotifier.add(
+    snackBarBloc.addSnackBar(
       _createSnackBar(
         fruitsName: fruitsInfo.fruitsName!,
         suffixContextText: 'をお気に入りから外しました。',
