@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:frufav/bloc/snack_bar_bloc.dart';
 import 'package:frufav/drop_down_button_type.dart';
 import 'package:frufav/model/fruits_info.dart';
 import 'package:frufav/riverpod/fruits_list_notifier.dart';
+import 'package:frufav/riverpod/snack_bar_notifier.dart';
 import 'package:frufav/screen/fruits_detail_screen.dart';
 
 final _fruitsListProvider =
@@ -66,34 +65,34 @@ class FruitsListScreen extends StatelessWidget {
     FruitsInfo fruitsInfo,
   ) {
     final fruitsListNotifier = ref.read(_fruitsListProvider.notifier);
-    final snackBarBloc = context.read<SnackBarBloc>();
+    final snackBarNotifier = ref.read(snackBarProvider.notifier);
     if (!ref.read(_fruitsListProvider).checkFavoriteFruitsInfo(fruitsInfo)) {
       fruitsListNotifier.addFavoriteFruitsInfo(fruitsInfo);
-      snackBarBloc.addSnackBar(
+      snackBarNotifier.addSnackBar(
         _createSnackBar(
           fruitsName: fruitsInfo.fruitsName!,
-          suffixContextText: 'をお気に入りに登録しました。',
+          suffixContentText: 'をお気に入りに登録しました。',
         ),
       );
       return;
     }
     fruitsListNotifier.removeFavoriteFruitsInfo(fruitsInfo);
-    snackBarBloc.addSnackBar(
+    snackBarNotifier.addSnackBar(
       _createSnackBar(
         fruitsName: fruitsInfo.fruitsName!,
-        suffixContextText: 'をお気に入りから外しました。',
+        suffixContentText: 'をお気に入りから外しました。',
       ),
     );
   }
 
   SnackBar _createSnackBar({
     required String fruitsName,
-    required String suffixContextText,
+    required String suffixContentText,
   }) {
     return SnackBar(
       content: Container(
         alignment: AlignmentDirectional.center,
-        child: Text('$fruitsName$suffixContextText'),
+        child: Text('$fruitsName$suffixContentText'),
       ),
       duration: const Duration(seconds: 3),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),

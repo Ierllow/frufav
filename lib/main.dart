@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:frufav/bloc/snack_bar_bloc.dart';
+import 'package:frufav/riverpod/snack_bar_notifier.dart';
 import 'package:frufav/screen/fruits_list_screen.dart';
-import 'package:provider/provider.dart';
 
 void main() {
   runApp(const ProviderScope(child: _App()));
@@ -19,18 +17,24 @@ class _App extends StatelessWidget {
       theme: ThemeData(
         useMaterial3: true,
       ),
-      home: MultiProvider(
-        providers: [
-          BlocProvider<SnackBarBloc>(
-            create: (context) => SnackBarBloc(),
-          ),
-          BlocListener<SnackBarBloc, SnackBarState>(
-            listenWhen: (previous, current) => previous != current,
-            listener: (context, state) =>
-                ScaffoldMessenger.of(context).showSnackBar(state.snackBar!),
+      home: Stack(
+        children: [
+          const FruitsListScreen(),
+          Consumer(
+            builder: (context, ref, child) {
+              ref.listen(
+                snackBarProvider,
+                (previous, next) {
+                  if (previous?.snackBar != next.snackBar &&
+                      next.snackBar != null) {
+                    ScaffoldMessenger.of(context).showSnackBar(next.snackBar!);
+                  }
+                },
+              );
+              return child ?? const SizedBox.shrink();
+            },
           )
         ],
-        child: const FruitsListScreen(),
       ),
     );
   }
