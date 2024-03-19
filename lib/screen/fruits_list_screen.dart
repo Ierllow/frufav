@@ -48,7 +48,7 @@ class FruitsListScreen extends StatelessWidget {
                   onTapItem: (info) {
                     ref
                         .read(fruitsGoRouterProvider)
-                        .push('/detail', extra: fruitsInfo);
+                        .push('/detail', extra: info);
                   },
                   onLongPressStart: () =>
                       _longPressStart(context, ref, fruitsInfo),
