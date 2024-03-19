@@ -11,6 +11,7 @@ class FruitsDetailScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final fruitsDetailListItemList = fruitsInfo._fruitsDetailListItemList;
     return Scaffold(
       appBar: AppBar(
         title: const Text('フルーツ'),
@@ -19,24 +20,7 @@ class FruitsDetailScreen extends StatelessWidget {
       body: ListView(
         children: [
           Image.asset(fruitsInfo.thumbnailUrl!),
-          _FruitsDetailListItem(
-            title: "${fruitsInfo.fruitsName!}の概要",
-            detail: fruitsInfo.overview!,
-          ),
-          _FruitsDetailListItem(
-            title: "${fruitsInfo.fruitsName!}の歴史",
-            detail: fruitsInfo.history!,
-          ),
-          _FruitsDetailListItem(
-            title: "${fruitsInfo.fruitsName!}の選び方",
-            detail: fruitsInfo.select!,
-            imageUrl: fruitsInfo.selectImageUrl,
-          ),
-          _FruitsDetailListItem(
-            title: "${fruitsInfo.fruitsName!}の保存方法",
-            detail: fruitsInfo.save!,
-            imageUrl: fruitsInfo.saveImageUrl,
-          ),
+          ...fruitsDetailListItemList,
         ],
       ),
     );
@@ -70,7 +54,7 @@ class _FruitsDetailListItem extends StatelessWidget {
           padding: const EdgeInsets.only(top: 7),
           child: Column(
             children: [
-              if (imageUrl != null)
+              if (!imageUrl._isNullOrEmpty)
                 Padding(
                   padding: const EdgeInsets.only(top: 5),
                   child: Image.asset(imageUrl!),
@@ -85,4 +69,31 @@ class _FruitsDetailListItem extends StatelessWidget {
       ),
     );
   }
+}
+
+extension on String? {
+  bool get _isNullOrEmpty => !(this != null && this!.isNotEmpty);
+}
+
+extension on FruitsInfo {
+  List<_FruitsDetailListItem> get _fruitsDetailListItemList => [
+        _FruitsDetailListItem(
+          title: "$fruitsName!の概要",
+          detail: overview!,
+        ),
+        _FruitsDetailListItem(
+          title: "$fruitsName!の歴史",
+          detail: history!,
+        ),
+        _FruitsDetailListItem(
+          title: "$fruitsName!の選び方",
+          detail: select!,
+          imageUrl: selectImageUrl,
+        ),
+        _FruitsDetailListItem(
+          title: "$fruitsName!の保存方法",
+          detail: save!,
+          imageUrl: saveImageUrl,
+        )
+      ];
 }

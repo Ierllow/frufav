@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:frufav/drop_down_button_type.dart';
 import 'package:frufav/model/fruits_info.dart';
+import 'package:frufav/riverpod/fruits_go_router_provider.dart';
 import 'package:frufav/riverpod/fruits_list_notifier.dart';
 import 'package:frufav/riverpod/snack_bar_notifier.dart';
-import 'package:frufav/screen/fruits_detail_screen.dart';
 
 final _fruitsListProvider =
     StateNotifierProvider<FruitsListNotifier, FruitsListState>(
@@ -19,10 +19,7 @@ class FruitsListScreen extends StatelessWidget {
       builder: (context, ref, _) {
         final fruitsListState = ref.watch(_fruitsListProvider);
         final fruitsListProvider = ref.read(_fruitsListProvider.notifier);
-        final fruitsInfoList = identical(
-                fruitsListState.lastSortedInfoListType, DropDownButtonType.all)
-            ? fruitsListState.fruitsInfoList
-            : fruitsListState.favoriteFruitsInfoList;
+        final fruitsInfoList = fruitsListState._fruitsInfoList;
         return Scaffold(
           appBar: AppBar(
             title: const Text('フルーツ'),
@@ -48,6 +45,11 @@ class FruitsListScreen extends StatelessWidget {
                   fruitsInfo: fruitsInfo,
                   favorite: fruitsListState.favoriteFruitsInfoList.any(
                       (f) => identical(f.fruitsName, fruitsInfo.fruitsName)),
+                  onTapItem: (info) {
+                    ref
+                        .read(fruitsGoRouterProvider)
+                        .push('/detail', extra: fruitsInfo);
+                  },
                   onLongPressStart: () =>
                       _longPressStart(context, ref, fruitsInfo),
                 );
@@ -68,36 +70,16 @@ class FruitsListScreen extends StatelessWidget {
     final snackBarNotifier = ref.read(snackBarProvider.notifier);
     if (!ref.read(_fruitsListProvider).checkFavoriteFruitsInfo(fruitsInfo)) {
       fruitsListNotifier.addFavoriteFruitsInfo(fruitsInfo);
-      snackBarNotifier.addSnackBar(
-        _createSnackBar(
-          fruitsName: fruitsInfo.fruitsName!,
-          suffixContentText: 'をお気に入りに登録しました。',
-        ),
+      snackBarNotifier._addSnackBar(
+        fruitsName: fruitsInfo.fruitsName!,
+        suffixContentText: 'をお気に入りに登録しました。',
       );
       return;
     }
     fruitsListNotifier.removeFavoriteFruitsInfo(fruitsInfo);
-    snackBarNotifier.addSnackBar(
-      _createSnackBar(
-        fruitsName: fruitsInfo.fruitsName!,
-        suffixContentText: 'をお気に入りから外しました。',
-      ),
-    );
-  }
-
-  SnackBar _createSnackBar({
-    required String fruitsName,
-    required String suffixContentText,
-  }) {
-    return SnackBar(
-      content: Container(
-        alignment: AlignmentDirectional.center,
-        child: Text('$fruitsName$suffixContentText'),
-      ),
-      duration: const Duration(seconds: 3),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      margin: const EdgeInsets.only(left: 23, right: 23, bottom: 23),
-      behavior: SnackBarBehavior.floating,
+    snackBarNotifier._addSnackBar(
+      fruitsName: fruitsInfo.fruitsName!,
+      suffixContentText: 'をお気に入りから外しました。',
     );
   }
 }
@@ -142,11 +124,13 @@ class _FruitsListItem extends StatelessWidget {
   const _FruitsListItem({
     required this.fruitsInfo,
     required this.favorite,
+    required this.onTapItem,
     required this.onLongPressStart,
   });
 
   final FruitsInfo fruitsInfo;
   final bool favorite;
+  final void Function(FruitsInfo) onTapItem;
   final VoidCallback onLongPressStart;
 
   @override
@@ -154,13 +138,7 @@ class _FruitsListItem extends StatelessWidget {
     return Card(
       child: GestureDetector(
         onTap: () {
-          Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (context) {
-                return FruitsDetailScreen(fruitsInfo: fruitsInfo);
-              },
-            ),
-          );
+          onTapItem.call(fruitsInfo);
         },
         onLongPressStart: (_) => onLongPressStart.call(),
         child: Container(
@@ -185,4 +163,31 @@ class _FruitsListItem extends StatelessWidget {
       ),
     );
   }
+}
+
+extension on SnackBarNotifier {
+  void _addSnackBar({
+    required String fruitsName,
+    required String suffixContentText,
+  }) {
+    addSnackBar(
+      SnackBar(
+        content: Container(
+          alignment: AlignmentDirectional.center,
+          child: Text('$fruitsName$suffixContentText'),
+        ),
+        duration: const Duration(seconds: 3),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        margin: const EdgeInsets.only(left: 23, right: 23, bottom: 23),
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+  }
+}
+
+extension on FruitsListState {
+  List<FruitsInfo> get _fruitsInfoList =>
+      identical(lastSortedInfoListType, DropDownButtonType.all)
+          ? fruitsInfoList
+          : favoriteFruitsInfoList;
 }

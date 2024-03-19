@@ -96,14 +96,14 @@ class FruitsListNotifier extends StateNotifier<FruitsListState> {
     _saveFavoriteFruitsInfoList();
   }
 
-  void _saveFavoriteFruitsInfoList() async {
+  Future<void> _saveFavoriteFruitsInfoList() async {
     prefs.setStringList(
       "favFruitsInfoList",
       state.favoriteFruitsInfoList.map((f) => f.fruitsName!).toList(),
     );
   }
 
-  void _saveLastSortedInfoList() async {
+  Future<void> _saveLastSortedInfoList() async {
     prefs.setInt("lastSortedInfoListType", state.lastSortedInfoListType.index);
   }
 }
