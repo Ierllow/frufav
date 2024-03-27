@@ -11,7 +11,6 @@ class FruitsDetailScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final fruitsDetailListItemList = fruitsInfo._fruitsDetailListItemList;
     return Scaffold(
       appBar: AppBar(
         title: const Text('フルーツ'),
@@ -20,7 +19,7 @@ class FruitsDetailScreen extends StatelessWidget {
       body: ListView(
         children: [
           Image.asset(fruitsInfo.thumbnailUrl!),
-          ...fruitsDetailListItemList,
+          ...fruitsInfo._fruitsDetailListItemList,
         ],
       ),
     );

@@ -15,36 +15,28 @@ class _App extends StatelessWidget {
     return MaterialApp(
       title: 'frufav',
       theme: ThemeData(useMaterial3: true),
-      home: const _MainContent(),
-    );
-  }
-}
-
-class _MainContent extends StatelessWidget {
-  const _MainContent();
-
-  @override
-  Widget build(BuildContext context) {
-    return Consumer(
-      builder: (_, ref, __) {
-        ref.listen(
-          snackBarProvider,
-          (previous, next) {
-            final sameSnackBar = previous?.snackBar == next.snackBar;
-            final nextSnackBar = next.snackBar;
-            if (!sameSnackBar && nextSnackBar != null) {
-              ScaffoldMessenger.of(context).showSnackBar(nextSnackBar);
-            }
+      home: Scaffold(
+        body: Consumer(
+          builder: (context, ref, __) {
+            ref.listen(
+              snackBarProvider,
+              (previous, next) {
+                final sameSnackBar = previous?.snackBar == next.snackBar;
+                final nextSnackBar = next.snackBar;
+                if (!sameSnackBar && nextSnackBar != null) {
+                  ScaffoldMessenger.of(context).showSnackBar(nextSnackBar);
+                }
+              },
+            );
+            final goRouter = ref.watch(fruitsGoRouterProvider);
+            return MaterialApp.router(
+              routeInformationProvider: goRouter.routeInformationProvider,
+              routeInformationParser: goRouter.routeInformationParser,
+              routerDelegate: goRouter.routerDelegate,
+            );
           },
-        );
-        return MaterialApp.router(
-          routeInformationProvider:
-              ref.watch(fruitsGoRouterProvider).routeInformationProvider,
-          routeInformationParser:
-              ref.watch(fruitsGoRouterProvider).routeInformationParser,
-          routerDelegate: ref.watch(fruitsGoRouterProvider).routerDelegate,
-        );
-      },
+        ),
+      ),
     );
   }
 }

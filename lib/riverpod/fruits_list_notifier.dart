@@ -27,15 +27,13 @@ class FruitsListState extends Equatable {
   final List<FruitsInfo> fruitsInfoList;
   final DropDownButtonType lastSortedInfoListType;
 
-  @override
-  List<Object?> get props => [
-        fruitsInfoList,
-        favoriteFruitsInfoList,
-        lastSortedInfoListType,
-      ];
-
   bool checkFavoriteFruitsInfo(FruitsInfo fruitsInfo) =>
       favoriteFruitsInfoList.any((f) => f.fruitsName == fruitsInfo.fruitsName);
+
+  List<FruitsInfo> getFruitsInfoList() =>
+      identical(lastSortedInfoListType, DropDownButtonType.all)
+          ? fruitsInfoList
+          : favoriteFruitsInfoList;
 
   FruitsListState copyWith({
     List<FruitsInfo>? fruitsInfoList,
@@ -49,32 +47,40 @@ class FruitsListState extends Equatable {
         lastSortedInfoListType:
             lastSortedInfoListType ?? this.lastSortedInfoListType,
       );
+
+  @override
+  List<Object?> get props => [
+        fruitsInfoList,
+        favoriteFruitsInfoList,
+        lastSortedInfoListType,
+      ];
 }
 
 class FruitsListNotifier extends StateNotifier<FruitsListState> {
   FruitsListNotifier() : super(FruitsListState.init()) {
-    getAllFruitsInfo();
+    _getAllFruitsInfo();
   }
 
-  late final SharedPreferences prefs;
+  late final SharedPreferences _prefs;
 
-  Future<void> getAllFruitsInfo() async {
+  Future<void> _getAllFruitsInfo() async {
     const path = 'assets/data/data.json';
     final body = await rootBundle.loadString(path);
     final jsonResponse = json.decode(body) as Map<String, dynamic>;
     final fruitsRaw = jsonResponse['fruitsInfoList'] as List? ?? <dynamic>[];
 
     if (fruitsRaw.isEmpty) return;
+
     final fruitsInfoList =
         fruitsRaw.map((f) => FruitsInfo.fromJson(f)).toList();
-    prefs = await SharedPreferences.getInstance();
+    _prefs = await SharedPreferences.getInstance();
     state = state.copyWith(
       fruitsInfoList: fruitsInfoList,
-      favoriteFruitsInfoList: prefs
+      favoriteFruitsInfoList: _prefs
           .getStringList("favFruitsInfoList")
           ?.getFavoriteFruitsInfoList(fruitsInfoList),
       lastSortedInfoListType:
-          prefs.getInt("lastSortedInfoListType").lastSortedInfoListType,
+          _prefs.getInt("lastSortedInfoListType").lastSortedInfoListType,
     );
   }
 
@@ -91,20 +97,21 @@ class FruitsListNotifier extends StateNotifier<FruitsListState> {
   }
 
   Future<void> removeFavoriteFruitsInfo(FruitsInfo fruitsInfo) async {
-    final removedInfo = state.favoriteFruitsInfoList..remove(fruitsInfo);
-    state = state.copyWith(favoriteFruitsInfoList: [...removedInfo]);
+    state = state.copyWith(
+      favoriteFruitsInfoList: state.favoriteFruitsInfoList..remove(fruitsInfo),
+    );
     _saveFavoriteFruitsInfoList();
   }
 
   Future<void> _saveFavoriteFruitsInfoList() async {
-    prefs.setStringList(
+    _prefs.setStringList(
       "favFruitsInfoList",
       state.favoriteFruitsInfoList.map((f) => f.fruitsName!).toList(),
     );
   }
 
   Future<void> _saveLastSortedInfoList() async {
-    prefs.setInt("lastSortedInfoListType", state.lastSortedInfoListType.index);
+    _prefs.setInt("lastSortedInfoListType", state.lastSortedInfoListType.index);
   }
 }
 
